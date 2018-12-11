@@ -37,7 +37,8 @@ public:
 	void SetDumpDataConfig(std::string dumpDataConfig);
 	int SetParameter(int index, const char * param);
 	int Shell(int level, FILE * fp = nullptr);
-	int BuildAndProcessGraph(int level, char * graphScript, bool importMode);
+	int Run();
+	int BuildGraph(int level, char * graphScript);
 	int SetImportedData(vx_reference ref, const char * name, const char * params);
 	int Shutdown();
 	void DisableWaitForKeyPress();

@@ -255,7 +255,9 @@ int main(int argc, char * argv[])
 
 		if (fullText) {
 			// process the GDF
-			if (engine.BuildAndProcessGraph(0, fullText, false) < 0)
+			if (engine.BuildGraph(0, fullText) < 0)
+				throw - 1;
+			if (engine.Run() < 0)
 				throw - 1;
 			delete[] fullText;
 		}

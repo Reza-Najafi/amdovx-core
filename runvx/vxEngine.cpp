@@ -554,7 +554,7 @@ int CVxEngine::BuildAndProcessGraphFromLine(int level, char * line)
 		char * txtBuffer = (char *)txt.GetBuffer();
 		if (!txtBuffer)
 			ReportError("ERROR: unable to open: %s\n", fileName);
-		return BuildAndProcessGraph(level + 1, txtBuffer, true);
+		return BuildGraph(level + 1, txtBuffer);
 	}
 	else if (!_stricmp(wordList[0], "shell")) {
 		if (level >= MAX_GDF_LEVELS) ReportError("Too many levels of recursion from inside GDF\n");
@@ -1037,7 +1037,17 @@ int CVxEngine::BuildAndProcessGraphFromLine(int level, char * line)
 	return BUILD_GRAPH_SUCCESS;
 }
 
-int CVxEngine::BuildAndProcessGraph(int level, char * graphScript, bool importMode)
+int CVxEngine::Run()
+{
+	// process the graph, if there are some non-processed statements pending
+	if (!m_numGraphProcessed) {
+		if (ProcessGraph() < 0)
+			return -1;
+	}
+	return 0;
+}
+
+int CVxEngine::BuildGraph(int level, char * graphScript)
 {
 	// remove replace whitespace, comments, and line-endings with SP in GDF
 #define CHECK_BACKSLASH_AT_LINE_ENDING(s,i) ((s[i] == ' ' || s[i] == '\t') && s[i + 1] == '\\' && (s[i + 2] == '\n' || (s[i + 2] == '\r' && s[i + 3] == '\n')))
@@ -1094,12 +1104,6 @@ int CVxEngine::BuildAndProcessGraph(int level, char * graphScript, bool importMo
 			break;
 	}
 	fflush(stdout);
-
-	// process the graph, if there are some non-processed statements pending
-	if (!importMode && !m_numGraphProcessed) {
-		if (ProcessGraph() < 0)
-			return -1;
-	}
 	return 0;
 }
 
