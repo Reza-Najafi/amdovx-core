@@ -34,6 +34,7 @@ set(CMAKE_INSTALL_PREFIX /opt/rocm)
 file(COPY examples DESTINATION ${CMAKE_BINARY_DIR})
 
 add_subdirectory(openvx)
+add_subdirectory(vxengine)
 add_subdirectory(runvx)
 
 if(OpenCL_FOUND)
