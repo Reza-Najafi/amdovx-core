@@ -23,7 +23,7 @@ THE SOFTWARE.
 #define _CRT_SECURE_NO_WARNINGS
 #include "vxParamHelper.h"
 #include "vxEngineUtil.h"
-#include "vxEngine.h"
+#include "vxEngineImpl.h"
 
 // program and version
 #define RUNVX_VERSION "0.9.9"
@@ -204,7 +204,7 @@ int main(int argc, char * argv[])
 	}
 	fflush(stdout);
 
-	CVxEngine engine;
+	CVxEngineImpl engine;
 	int errorCode = 0;
 	try {
 		// initialize engine
