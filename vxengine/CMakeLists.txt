@@ -33,7 +33,7 @@ list(APPEND SOURCES
 	src/vxArray.cpp
 	src/vxConvolution.cpp
 	src/vxDistribution.cpp
-	src/vxEngine.cpp
+	src/vxEngineImpl.cpp
 	src/vxEngineUtil.cpp
 	src/vxImage.cpp
 	src/vxLUT.cpp

@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "vxEngine.h"
+#include "vxEngineImpl.h"
 #include "vxEngineUtil.h"
 #include "vxParamHelper.h"
 
@@ -58,7 +58,7 @@ static void VX_CALLBACK log_callback(vx_context context, vx_reference ref, vx_st
 	}
 }
 
-CVxEngine::CVxEngine()
+CVxEngineImpl::CVxEngineImpl()
 {
 	m_paramCount = 0;
 	m_usingMultiFrameCapture = false;
@@ -81,12 +81,12 @@ CVxEngine::CVxEngine()
 	m_dumpDataCount = 0;
 }
 
-CVxEngine::~CVxEngine()
+CVxEngineImpl::~CVxEngineImpl()
 {
 	Shutdown();
 }
 
-int CVxEngine::Initialize(int argCount, int defaultTargetAffinity, int defaultTargetInfo, bool enableScheduleGraph, bool disableVirtual, bool enableFullProfile, bool disableNodeFlushForCL, std::string discardCommandList)
+int CVxEngineImpl::Initialize(int argCount, int defaultTargetAffinity, int defaultTargetInfo, bool enableScheduleGraph, bool disableVirtual, bool enableFullProfile, bool disableNodeFlushForCL, std::string discardCommandList)
 {
 	// save configuration
 	m_paramCount = argCount;
@@ -139,7 +139,7 @@ int CVxEngine::Initialize(int argCount, int defaultTargetAffinity, int defaultTa
 	return 0;
 }
 
-int CVxEngine::SetGraphOptimizerFlags(vx_uint32 graph_optimizer_flags)
+int CVxEngineImpl::SetGraphOptimizerFlags(vx_uint32 graph_optimizer_flags)
 {
 	// set optimizer flags
 	vx_status status = vxSetGraphAttribute(m_graph, VX_GRAPH_ATTRIBUTE_AMD_OPTIMIZER_FLAGS, &graph_optimizer_flags, sizeof(graph_optimizer_flags));
@@ -148,7 +148,7 @@ int CVxEngine::SetGraphOptimizerFlags(vx_uint32 graph_optimizer_flags)
 	return 0;
 }
 
-void CVxEngine::SetDumpDataConfig(std::string dumpDataConfig)
+void CVxEngineImpl::SetDumpDataConfig(std::string dumpDataConfig)
 {
 	m_dumpDataEnabled = false;
 	// extract dumpDataFilePrefix and dumpDataObjectList (with added ',' at the end)
@@ -160,12 +160,12 @@ void CVxEngine::SetDumpDataConfig(std::string dumpDataConfig)
 	m_dumpDataEnabled = true;
 }
 
-vx_context CVxEngine::getContext()
+vx_context CVxEngineImpl::getContext()
 {
 	return m_context;
 }
 
-int CVxEngine::SetParameter(int index, const char * param)
+int CVxEngineImpl::SetParameter(int index, const char * param)
 {
 	std::string paramDesc;
 	if (m_disableVirtual) {
@@ -188,7 +188,7 @@ int CVxEngine::SetParameter(int index, const char * param)
 	return 0;
 }
 
-int CVxEngine::SetImportedData(vx_reference ref, const char * name, const char * params)
+int CVxEngineImpl::SetImportedData(vx_reference ref, const char * name, const char * params)
 {
 	if (params) {
 		CVxParameter * obj = CreateDataObject(m_context, m_graph, ref, params, m_frameStart);
@@ -204,14 +204,14 @@ int CVxEngine::SetImportedData(vx_reference ref, const char * name, const char *
 
 void VX_CALLBACK CVxEngine_data_registry_callback_f(void * obj, vx_reference ref, const char * name, const char * params)
 {
-	int status = ((CVxEngine *)obj)->SetImportedData(ref, name, params);
+	int status = ((CVxEngineImpl *)obj)->SetImportedData(ref, name, params);
 	if (status) {
 		printf("ERROR: SetImportedData(*,%s,%s) failed (%d)\n", name, params, status);
 		throw -1;
 	}
 }
 
-void CVxEngine::ReleaseAllVirtualObjects()
+void CVxEngineImpl::ReleaseAllVirtualObjects()
 {
 	// close all virtual objects
 	std::vector<std::string> virtualNameList;
@@ -226,7 +226,7 @@ void CVxEngine::ReleaseAllVirtualObjects()
 	}
 }
 
-int CVxEngine::DumpInternalGDF()
+int CVxEngineImpl::DumpInternalGDF()
 {
 	vx_reference ref[64] = { 0 };
 	int num_ref = 0;
@@ -248,7 +248,7 @@ int CVxEngine::DumpInternalGDF()
 	return 0;
 }
 
-int CVxEngine::DumpGraphInfo(const char * graphName)
+int CVxEngineImpl::DumpGraphInfo(const char * graphName)
 {
 	vx_graph graph = m_graph;
 	if (!graphName) {
@@ -293,7 +293,7 @@ int CVxEngine::DumpGraphInfo(const char * graphName)
 	return 0;
 }
 
-int CVxEngine::ProcessGraph(std::vector<const char *> * graphNameList, size_t beginIndex)
+int CVxEngineImpl::ProcessGraph(std::vector<const char *> * graphNameList, size_t beginIndex)
 {
 	// update graph process count
 	m_numGraphProcessed++;
@@ -483,7 +483,7 @@ const char * RemoveWhiteSpacesAndComment(char * line)
 	return buf;
 }
 
-int CVxEngine::RenameData(const char * oldName, const char * newName)
+int CVxEngineImpl::RenameData(const char * oldName, const char * newName)
 {
 	auto itOld = m_paramMap.find(oldName);
 	auto itNew = m_paramMap.find(newName);
@@ -501,7 +501,7 @@ int CVxEngine::RenameData(const char * oldName, const char * newName)
 	return 0;
 }
 
-int CVxEngine::BuildAndProcessGraphFromLine(int level, char * line)
+int CVxEngineImpl::BuildAndProcessGraphFromLine(int level, char * line)
 {
 	// remove whitespaces and save original text for error reporting
 	std::string originalLine = RemoveWhiteSpacesAndComment(line);
@@ -1037,7 +1037,7 @@ int CVxEngine::BuildAndProcessGraphFromLine(int level, char * line)
 	return BUILD_GRAPH_SUCCESS;
 }
 
-int CVxEngine::Run()
+int CVxEngineImpl::Run()
 {
 	// process the graph, if there are some non-processed statements pending
 	if (!m_numGraphProcessed) {
@@ -1047,7 +1047,7 @@ int CVxEngine::Run()
 	return 0;
 }
 
-int CVxEngine::BuildGraph(int level, char * graphScript)
+int CVxEngineImpl::BuildGraph(int level, char * graphScript)
 {
 	// remove replace whitespace, comments, and line-endings with SP in GDF
 #define CHECK_BACKSLASH_AT_LINE_ENDING(s,i) ((s[i] == ' ' || s[i] == '\t') && s[i + 1] == '\\' && (s[i + 2] == '\n' || (s[i + 2] == '\r' && s[i + 3] == '\n')))
@@ -1107,7 +1107,7 @@ int CVxEngine::BuildGraph(int level, char * graphScript)
 	return 0;
 }
 
-int CVxEngine::Shell(int level, FILE * fp)
+int CVxEngineImpl::Shell(int level, FILE * fp)
 {
 	char line[4096];
 	if (!fp) { printf("%% "); fflush(stdout); }
@@ -1131,7 +1131,7 @@ int CVxEngine::Shell(int level, FILE * fp)
 	return 0;
 }
 
-int CVxEngine::SyncFrame(int frameNumber)
+int CVxEngineImpl::SyncFrame(int frameNumber)
 {
 	for (auto it = m_paramMap.begin(); it != m_paramMap.end(); ++it){
 		int status = it->second->SyncFrame(frameNumber);
@@ -1141,7 +1141,7 @@ int CVxEngine::SyncFrame(int frameNumber)
 	return 0;
 }
 
-int CVxEngine::ReadFrame(int frameNumber)
+int CVxEngineImpl::ReadFrame(int frameNumber)
 {
 	for (auto it = m_paramMap.begin(); it != m_paramMap.end(); ++it){
 		int status = it->second->ReadFrame(frameNumber);
@@ -1151,7 +1151,7 @@ int CVxEngine::ReadFrame(int frameNumber)
 	return 0;
 }
 
-int CVxEngine::WriteFrame(int frameNumber)
+int CVxEngineImpl::WriteFrame(int frameNumber)
 {
 	
 	for (auto it = m_paramMap.begin(); it != m_paramMap.end(); ++it){
@@ -1162,7 +1162,7 @@ int CVxEngine::WriteFrame(int frameNumber)
 	return 0;
 }
 
-int CVxEngine::CompareFrame(int frameNumber)
+int CVxEngineImpl::CompareFrame(int frameNumber)
 {
 	for (auto it = m_paramMap.begin(); it != m_paramMap.end(); ++it){
 		int status = it->second->CompareFrame(frameNumber);
@@ -1172,7 +1172,7 @@ int CVxEngine::CompareFrame(int frameNumber)
 	return 0;
 }
 
-void CVxEngine::SetFrameCountOptions(bool enableMultiFrameProcessing, bool framesEofRequested, bool frameCountSpecified, int frameStart, int frameEnd)
+void CVxEngineImpl::SetFrameCountOptions(bool enableMultiFrameProcessing, bool framesEofRequested, bool frameCountSpecified, int frameStart, int frameEnd)
 {
 	m_enableMultiFrameProcessing = enableMultiFrameProcessing;
 	m_framesEofRequested = framesEofRequested;
@@ -1181,7 +1181,7 @@ void CVxEngine::SetFrameCountOptions(bool enableMultiFrameProcessing, bool frame
 	m_frameEnd = frameEnd;
 }
 
-void CVxEngine::SetConfigOptions(bool verbose, bool discardCompareErrors, bool enableDumpProfile, bool enableDumpGDF, int waitKeyDelayInMilliSeconds)
+void CVxEngineImpl::SetConfigOptions(bool verbose, bool discardCompareErrors, bool enableDumpProfile, bool enableDumpGDF, int waitKeyDelayInMilliSeconds)
 {
 	m_verbose = verbose;
 	m_discardCompareErrors = discardCompareErrors;
@@ -1191,7 +1191,7 @@ void CVxEngine::SetConfigOptions(bool verbose, bool discardCompareErrors, bool e
 		m_waitKeyDelayInMilliSeconds = waitKeyDelayInMilliSeconds;
 }
 
-void CVxEngine::MeasureFrame(int frameNumber, int status, std::vector<vx_graph>& graphList)
+void CVxEngineImpl::MeasureFrame(int frameNumber, int status, std::vector<vx_graph>& graphList)
 {
 	if (m_verbose) printf("csv,FRAME  ,  %s,%6d", (status == 0 ? "PASS" : "FAIL"), frameNumber);
 	if (graphList.size() < 2) {
@@ -1223,7 +1223,7 @@ void CVxEngine::MeasureFrame(int frameNumber, int status, std::vector<vx_graph>&
 }
 
 
-float CVxEngine::GetMedianRunTime()
+float CVxEngineImpl::GetMedianRunTime()
 {
 	float median = 0.0;
 	size_t count = m_timeMeasurements.size();
@@ -1234,7 +1234,7 @@ float CVxEngine::GetMedianRunTime()
 	return median;
 }
 
-void CVxEngine::PerformanceStatistics(int status, std::vector<vx_graph>& graphList)
+void CVxEngineImpl::PerformanceStatistics(int status, std::vector<vx_graph>& graphList)
 {
 	if (graphList.size() < 2) {
 		printf("csv,OVERALL,  %s,", (status >= 0 ? "PASS" : "FAIL"));
@@ -1263,7 +1263,7 @@ void CVxEngine::PerformanceStatistics(int status, std::vector<vx_graph>& graphLi
 	fflush(stdout);
 }
 
-int CVxEngine::Shutdown()
+int CVxEngineImpl::Shutdown()
 {
 	for (auto it = m_paramMap.begin(); it != m_paramMap.end(); ++it){
 		if (it->second){
@@ -1284,7 +1284,7 @@ int CVxEngine::Shutdown()
 	return 0;
 }
 
-void CVxEngine::DisableWaitForKeyPress()
+void CVxEngineImpl::DisableWaitForKeyPress()
 {
 	for (auto it = m_paramMap.begin(); it != m_paramMap.end(); ++it){
 		if (it->second){
@@ -1293,7 +1293,7 @@ void CVxEngine::DisableWaitForKeyPress()
 	}
 }
 
-bool CVxEngine::IsUsingMultiFrameCapture(){
+bool CVxEngineImpl::IsUsingMultiFrameCapture(){
 	return m_usingMultiFrameCapture;
 }
 

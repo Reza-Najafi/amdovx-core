@@ -21,15 +21,15 @@ THE SOFTWARE.
 */
 
 
-#ifndef CVX_ENGINE_H
-#define CVX_ENGINE_H
-
+#ifndef CVX_ENGINE_IMPL_H
+#define CVX_ENGINE_IMPL_H
+#include "../include/vx_engine.h"
 #include "vxParameter.h"
 
-class CVxEngine {
+class CVxEngineImpl:public CVxEngine {
 public:
-	CVxEngine();
-	virtual ~CVxEngine();
+	CVxEngineImpl();
+	virtual ~CVxEngineImpl();
 	int Initialize(int paramCount, int defaultTargetAffinity, int defaultTargetInfo, bool enableScheduleGraph, bool disableVirtual, bool enableFullProfile, bool disableNodeFlushForCL, std::string discardCommandList);
 	void SetConfigOptions(bool verbose, bool discardCompareErrors, bool enableDumpProfile, bool enableDumpGDF, int waitKeyDelayInMilliSeconds);
 	void SetFrameCountOptions(bool enableMultiFrameProcessing, bool framesEofRequested, bool frameCountSpecified, int frameStart, int frameEnd);
